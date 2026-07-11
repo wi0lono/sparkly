@@ -15,7 +15,7 @@ from copy import deepcopy
 from sparkly.utils import  get_logger, invoke_task, type_check, type_check_call
 from sparkly.index_optimizer.query_scorer import AUCQueryScorer, QueryScorer
 from sparkly.search import search
-from typing import Annotated
+from typing import Annotated, List
 from pydantic import Field
 
 pd.set_option('display.width', 150)
@@ -349,7 +349,7 @@ class IndexOptimizer():
 
     
     @type_check_call
-    def optimize(self, index : Index, search_df: pyspark.sql.DataFrame) -> QuerySpec:
+    def optimize_topk(self, index : Index, search_df: pyspark.sql.DataFrame, topk=1) -> List[QuerySpec]:
         """
 
         Parameters
@@ -404,7 +404,8 @@ class IndexOptimizer():
             # index/block on
 
             # take the top spec if this is the last iteration, else the top 10
-            k = 1 if i == max_depth - 1 else 10
+            # k = 1 if i == max_depth - 1 else 10
+            k = topk
             top_specs_stats = self._get_topk_specs(cands, search_df, k=k, nulls=nulls)
             top_spec = top_specs_stats.iloc[0]
 
@@ -424,5 +425,32 @@ class IndexOptimizer():
                 best_query_specs = top_specs_stats['spec'].tolist()
                 log.debug('cand_score < min_score, replacing')
 
+        print("lalala")
+        print(len(best_query_specs))
+        print(best_query_specs)
 
-        return best_query_specs[0]
+        return best_query_specs
+
+
+    @type_check_call
+    def optimize(self, index : Index, search_df: pyspark.sql.DataFrame) -> QuerySpec:
+        """
+
+        Parameters
+        ----------
+
+        index : Index
+            the index that will have an optimzed query spec created for it
+            
+        search_df : pyspark.sql.DataFrame:
+            the records that will be used to choose the query spec
+
+        Returns
+        -------
+
+        QuerySpec
+            a query spec optimized for searching for `search_df` using `index`
+
+        """
+        return self.optimize_topk(index=index, search_df=search_df, topk=5)[0]
+

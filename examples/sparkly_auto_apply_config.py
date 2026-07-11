@@ -43,7 +43,7 @@ def main(args):
     with open(args.config) as f:
         recommended_config = RecommendedConfig.from_json(json.load(f))
 
-    index_config, query_spec = recommended_config.to_components()
+    index_config, query_spec = recommended_config.to_components()[0]
 
     index = LuceneIndex(
         args.index_dir,

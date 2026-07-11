@@ -19,6 +19,7 @@ def main(args):
 
     table_a = local_parquet_to_spark_df(args.table_a)
     table_b = table_a if args.table_b is None else local_parquet_to_spark_df(args.table_b)
+    top_k = args.top_k
 
     index_optimizer = IndexOptimizer(is_dedupe=args.table_b is None)
 
@@ -27,12 +28,12 @@ def main(args):
     index = LuceneIndex(args.index_dir, index_config, delete_if_exists=True)
     index.upsert_docs(table_a)
 
-    query_spec = index_optimizer.optimize(index, table_b)
+    query_spec_list = index_optimizer.optimize_topk(index, table_b, top_k)
 
-    recommended_config = RecommendedConfig.from_components(index_config=index_config, query_spec=query_spec)
+    recommended_config = RecommendedConfig.from_components(index_config=index_config, query_specs=query_spec_list)
 
     with open(args.output_config, "w") as f:
-        json.dump(recommended_config.to_dict(), f, indent=4)
+        json.dump(recommended_config.to_dicts(), f, indent=4)
 
     print(f"Wrote recommended config to {args.output_config}")
 
@@ -44,5 +45,6 @@ if __name__ == "__main__":
     argp.add_argument("--table_b", required=False, default=None)
     argp.add_argument("--output_config", required=True)
     argp.add_argument("--index_dir", required=False, default="/tmp/lucene_index/")
+    argp.add_argument("--top_k", required=False, type=int, default=1, help="Number of recommended configurations to generate",)
 
     main(argp.parse_args())
