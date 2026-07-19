@@ -32,9 +32,6 @@ def compute_recall(candidates, gold, is_dedupe):
 def main(args):
     SparkSession.builder \
         .appName("Sparkly-Auto-Apply-Config") \
-        .master("local[2]") \
-        .config("spark.driver.memory", "4g") \
-        .config("spark.sql.shuffle.partitions", "4") \
         .getOrCreate()
 
     table_a = local_parquet_to_spark_df(args.table_a)

@@ -15,7 +15,7 @@ from copy import deepcopy
 from sparkly.utils import  get_logger, invoke_task, type_check, type_check_call
 from sparkly.index_optimizer.query_scorer import AUCQueryScorer, QueryScorer
 from sparkly.search import search
-from typing import Annotated, List
+from typing import Annotated
 from pydantic import Field
 
 pd.set_option('display.width', 150)
@@ -349,7 +349,7 @@ class IndexOptimizer():
 
     
     @type_check_call
-    def optimize_topk(self, index : Index, search_df: pyspark.sql.DataFrame, topk=1) -> List[QuerySpec]:
+    def optimize_topk(self, index : Index, search_df: pyspark.sql.DataFrame, topk=1) -> list[QuerySpec]:
         """
 
         Parameters
@@ -425,9 +425,6 @@ class IndexOptimizer():
                 best_query_specs = top_specs_stats['spec'].tolist()
                 log.debug('cand_score < min_score, replacing')
 
-        print("lalala")
-        print(len(best_query_specs))
-        print(best_query_specs)
 
         return best_query_specs
 
