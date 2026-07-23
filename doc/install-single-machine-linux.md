@@ -179,7 +179,7 @@ Instead of pip installing from PyPI, you may want to pip install Sparkly from it
 
 ```
 sudo apt install git
-pip install git+https://github.com/anhaidgroup/sparkly.git@main
+pip install git+https://github.com/wi0lono/sparkly.git@main
 ```
 
 Similar to pip installing from PyPI, the above command will install Sparkly and all of its dependencies, _except Java, JCC, and PyLucene_.
