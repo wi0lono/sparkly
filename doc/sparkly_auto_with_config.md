@@ -1,8 +1,7 @@
 # Sparkly Auto with Config File
 
 Sparkly Auto recommends a blocking configuration for Sparkly. The recommended
-configuration can be inspected, modified if necessary, and then used to perform
-the blocking step.
+configuration can be exported to a JSON file which can be inspected, modified if necessary, and then used to perform the blocking step.
 
 ## Installation
 
