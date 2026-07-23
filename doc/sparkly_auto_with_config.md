@@ -11,7 +11,7 @@ First, clone this repository:
 git clone https://github.com/wi0lono/sparkly.git
 ```
 
-Next, Follow the installation instructions [here](./install-single-machine.md).
+Next, follow the installation instructions [here](./install-single-machine.md).
 
 The installation process is identical to Sparkly. The only difference is that when installing the Sparkly package, you should install this fork instead of the original repository:
 
@@ -20,7 +20,7 @@ pip install git+https://github.com/wi0lono/sparkly.git@main
 ```
 
 
-## Step 0: Clone and Activate Virtual environment
+## Step 0: Activate Virtual environment
 Once you are done with the installation, make sure your virtual environment is active:
 ```bash
 source ~/sparkly-venv/bin/activate
@@ -41,7 +41,8 @@ Run the following command:
 python sparkly_auto_generate_config.py \
     --table_a data/abt_buy/table_a.parquet \
     --table_b data/abt_buy/table_b.parquet \
-    --output_config recommended_config.json
+    --output_config recommended_config.json \
+    --top_k 2
 ```
 
 This runs Sparkly's optimization step and writes the recommended configuration
@@ -63,13 +64,60 @@ The generated JSON file contains one or more recommended blocking
 configurations. If `--top_k > 1`, the configurations are ordered from best to
 worst according to Sparkly's optimization process.
 
+
+Here's the config file generated from Step 1:
+
+```json
+[
+    {
+        "id_col": "_id",
+        "concat_fields": {
+            "concat_description_name_price": [
+                "name",
+                "description",
+                "price"
+            ]
+        },
+        "spec": {
+            "name": [
+                "name.3gram",
+                "name.standard"
+            ]
+        },
+        "boost_map": []
+    },
+    {
+        "id_col": "_id",
+        "concat_fields": {
+            "concat_description_name_price": [
+                "name",
+                "description",
+                "price"
+            ]
+        },
+        "spec": {
+            "name": [
+                "name.3gram",
+                "name.standard"
+            ],
+            "description": [
+                "description.standard"
+            ]
+        },
+        "boost_map": []
+    }
+]
+```
+
+**For most users, `spec` is the field you want to pay attention to.** `spec` maps columns in table B to one or more indexed fields (and analyzers) in table A that Sparkly Auto predicts will produce the best blocking performance.
+
 Each configuration contains the following fields:
 
 | Field | Description |
 |---|---|
 | `id_col` | The unique identifier column in table A. |
 | `concat_fields` | Any concatenated fields that Sparkly Auto created while building the index. |
-| `spec` | Maps columns in table B to indexed fields (and analyzers) in table A. This is the field users are most likely to modify. |
+| `spec` | Maps columns in table B to one or more indexed fields (and analyzers) in table A. This is the field users are most likely to modify. |
 | `boost_map` | Optional weights for indexed fields. If empty, all queried fields are weighted equally. |
 
 In most cases, the generated configuration can be used without modification.
@@ -87,9 +135,15 @@ python sparkly_auto_apply_config.py \
     --output_file candidates.parquet
 ```
 
-This rebuilds the index using the selected configuration, performs blocking,
-optionally computes recall if a gold file is provided, and writes the candidate
-pairs to `candidates.parquet`.
+This rebuilds the index using the recommended configuration, performs blocking, optionally computes recall if a gold file is provided, and writes the candidate pairs to `candidates.parquet`. If `--top_k > 1` in Step 1, Sparkly uses the first configuration in the JSON file by default.
+
+The output of this step should be the normal blocking output of Sparkly, ending like this if you have gold data:
+
+```
+only showing top 20 rows
+true_positives : 1096
+recall : 0.9990884229717412
+```
 
 ### Options
 
